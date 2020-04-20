@@ -1,0 +1,25 @@
+{
+  "name": "qu-mailer",
+  "version": "1.0.0",
+  "description": "Tool to send out our mailing blasts",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Quaranteens/mailer.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Quaranteens/mailer/issues"
+  },
+  "homepage": "https://github.com/Quaranteens/mailer#readme",
+  "dependencies": {
+    "@sendgrid/mail": "^7.0.1",
+    "csv-parser": "^2.3.2",
+    "dotenv": "^8.2.0",
+    "node-fetch": "^2.6.0"
+  }
+}
