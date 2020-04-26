@@ -25,7 +25,6 @@ fs.createReadStream("responses.csv")
   .on("data", (data) => contacts.push(data))
   .on("end", async () => {
     const schools = await getSchools();
-    console.log(schools);
 
     const uniqueEmails = new Set(
       contacts.filter((c) => c.Timestamp).map((c) => c["University Email"])
@@ -38,27 +37,34 @@ fs.createReadStream("responses.csv")
       const onlySignup = !schools.hasOwnProperty(contact["Email Domain"]);
       const oneOtherSignup =
         !onlySignup && schools[contact["Email Domain"]] == 2;
+      const emailData = {
+        firstName: contact["First Name"],
+        role: contact["Role"],
+        numFromSchool: Number.isInteger(schools[contact["Email Domain"]])
+          ? schools[contact["Email Domain"]] - 1
+          : 0,
+        onlySignup,
+        oneOtherSignup,
+      };
 
       const msg = {
         to: contact["University Email"],
         from: "admissions@quaranteen.university",
         templateId: "d-3a14eba083624a22b27ea0e51e48eb2c",
-        dynamic_template_data: {
-          firstName: contact["First Name"],
-          role: contact["Role"],
-          numFromSchool: schools[contact["Email Domain"]] - 1,
-          onlySignup,
-          oneOtherSignup,
-        },
+        dynamic_template_data: emailData,
       };
 
       sgMail
         .send(msg)
         .then((res) => {
-          console.log(`${contact["University Email"]}: Success!`);
+          console.log(`${contact["University Email"]}: Success!`, emailData);
         })
         .catch((error) => {
-          console.error(`${contact["University Email"]}: Failure!`, error);
+          console.error(
+            `${contact["University Email"]}: Failure!`,
+            emailData,
+            error
+          );
 
           if (error.response) {
             console.error(error.response.body);
