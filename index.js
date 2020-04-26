@@ -26,6 +26,7 @@ fs.createReadStream("responses.csv")
   .on("end", async () => {
     const schools = await getSchools();
 
+    // filter out bounces next time https://sendgrid.api-docs.io/v3.0/bounces-api/retrieve-all-bounces
     const uniqueEmails = new Set(
       contacts.filter((c) => c.Timestamp).map((c) => c["University Email"])
     );
@@ -40,9 +41,7 @@ fs.createReadStream("responses.csv")
       const emailData = {
         firstName: contact["First Name"],
         role: contact["Role"],
-        numFromSchool: Number.isInteger(schools[contact["Email Domain"]])
-          ? schools[contact["Email Domain"]] - 1
-          : 0,
+        numFromSchool: schools[contact["Email Domain"]] - 1,
         onlySignup,
         oneOtherSignup,
       };
