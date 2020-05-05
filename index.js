@@ -3,7 +3,9 @@ const fs = require("fs");
 const csv = require("csv-parser");
 const fetch = require("node-fetch");
 const sgMail = require("@sendgrid/mail");
+const sgClient = require('@sendgrid/client');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+sgClient.setApiKey(process.env.SENDGRID_API_KEY);
 
 const getSchools = async () => {
   const url =
@@ -26,13 +28,22 @@ fs.createReadStream("responses.csv")
   .on("end", async () => {
     const schools = await getSchools();
 
-    // filter out bounces next time https://sendgrid.api-docs.io/v3.0/bounces-api/retrieve-all-bounces
+    console.log("original contacts", contacts.length)
     const uniqueEmails = new Set(
       contacts.filter((c) => c.Timestamp).map((c) => c["University Email"])
     );
-    const uniqueContacts = Array.from(uniqueEmails).map((email) =>
+    let uniqueContacts = Array.from(uniqueEmails).map((email) =>
       contacts.find((c) => c["University Email"] === email)
     );
+    console.log("unique contacts", uniqueContacts.length)
+
+    let [response, bounces] = await sgClient.request({
+      method: 'GET',
+      url: '/v3/suppression/bounces'
+    });
+    bounces = bounces.map(c => c.email);
+    uniqueContacts = uniqueContacts.filter(c => !bounces.includes(c["University Email"]))
+    console.log("remove bounces", uniqueContacts.length)
 
     uniqueContacts.forEach((contact) => {
       const onlySignup = !schools.hasOwnProperty(contact["Email Domain"]);
@@ -40,34 +51,39 @@ fs.createReadStream("responses.csv")
         !onlySignup && schools[contact["Email Domain"]] == 2;
       const emailData = {
         firstName: contact["First Name"],
-        role: contact["Role"],
+        /*role: contact["Role"],
         numFromSchool: schools[contact["Email Domain"]] - 1,
         onlySignup,
-        oneOtherSignup,
+        oneOtherSignup,*/
       };
 
       const msg = {
         to: contact["University Email"],
-        from: "admissions@quaranteen.university",
-        templateId: "d-3a14eba083624a22b27ea0e51e48eb2c",
+        from: "Quaranteen University <admissions@quaranteen.university>",
+        templateId: "d-5958debb30be4f9fb796ddc4a91ad231",
         dynamic_template_data: emailData,
       };
 
-      sgMail
-        .send(msg)
-        .then((res) => {
-          console.log(`${contact["University Email"]}: Success!`, emailData);
-        })
-        .catch((error) => {
-          console.error(
-            `${contact["University Email"]}: Failure!`,
-            emailData,
-            error
-          );
+      const wedointhis = false;
+      if (wedointhis) {
+        sgMail
+          .send(msg)
+          .then((res) => {
+            console.log(`${contact["University Email"]}: Success!`, emailData);
+          })
+          .catch((error) => {
+            console.error(
+              `${contact["University Email"]}: Failure!`,
+              emailData,
+              error
+            );
 
-          if (error.response) {
-            console.error(error.response.body);
-          }
-        });
+            if (error.response) {
+              console.error(error.response.body);
+            }
+          });
+      } else {
+        console.log("Flag set to false!");
+      }
     });
   });
