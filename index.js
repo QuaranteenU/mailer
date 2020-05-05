@@ -45,27 +45,31 @@ fs.createReadStream("responses.csv")
     uniqueContacts = uniqueContacts.filter(c => !bounces.includes(c["University Email"]))
     console.log("remove bounces", uniqueContacts.length)
 
-    uniqueContacts.forEach((contact) => {
-      const onlySignup = !schools.hasOwnProperty(contact["Email Domain"]);
-      const oneOtherSignup =
-        !onlySignup && schools[contact["Email Domain"]] == 2;
-      const emailData = {
-        firstName: contact["First Name"],
-        /*role: contact["Role"],
-        numFromSchool: schools[contact["Email Domain"]] - 1,
-        onlySignup,
-        oneOtherSignup,*/
-      };
+    //uniqueContacts = uniqueContacts.filter(c => c["Role"] === 'Audience');
+    //console.log("audience only", uniqueContacts.length)
 
-      const msg = {
-        to: contact["University Email"],
-        from: "Quaranteen University <admissions@quaranteen.university>",
-        templateId: "d-5958debb30be4f9fb796ddc4a91ad231",
-        dynamic_template_data: emailData,
-      };
+    const wedointhis = false;
+    if (wedointhis) {
+      uniqueContacts.forEach((contact) => {
+        const onlySignup = !schools.hasOwnProperty(contact["Email Domain"]);
+        const oneOtherSignup =
+          !onlySignup && schools[contact["Email Domain"]] == 2;
+        const emailData = {
+          firstName: contact["First Name"],
+          /*role: contact["Role"],
+          numFromSchool: schools[contact["Email Domain"]] - 1,
+          onlySignup,
+          oneOtherSignup,*/
+        };
 
-      const wedointhis = false;
-      if (wedointhis) {
+        const msg = {
+          to: contact["University Email"],
+          from: "Quaranteen University <admissions@quaranteen.university>",
+          templateId: "d-d36e0bf5a61c4187a4e189adde9e4c66",
+          dynamic_template_data: emailData,
+        };
+
+        
         sgMail
           .send(msg)
           .then((res) => {
@@ -82,8 +86,8 @@ fs.createReadStream("responses.csv")
               console.error(error.response.body);
             }
           });
-      } else {
-        console.log("Flag set to false!");
-      }
-    });
+      });
+    } else {
+      console.log("Flag set to false!");
+    }
   });
