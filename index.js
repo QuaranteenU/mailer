@@ -22,72 +22,91 @@ const getSchools = async () => {
 };
 
 const contacts = [];
+let rsvps = []
 fs.createReadStream("responses.csv")
   .pipe(csv())
   .on("data", (data) => contacts.push(data))
   .on("end", async () => {
-    const schools = await getSchools();
+    fs.createReadStream("rsvps.csv")
+      .pipe(csv())
+      .on("data", (data) => rsvps.push(data))
+      .on("end", async () => {
+        const schools = await getSchools();
 
-    console.log("original contacts", contacts.length)
-    const uniqueEmails = new Set(
-      contacts.filter((c) => c.Timestamp).map((c) => c["University Email"])
-    );
-    let uniqueContacts = Array.from(uniqueEmails).map((email) =>
-      contacts.find((c) => c["University Email"] === email)
-    );
-    console.log("unique contacts", uniqueContacts.length)
+        console.log("original contacts", contacts.length)
+        const uniqueEmails = new Set(
+          contacts.filter((c) => c.Timestamp).map((c) => c["University Email"])
+        );
+        let uniqueContacts = Array.from(uniqueEmails).map((email) =>
+          contacts.find((c) => c["University Email"] === email)
+        );
+        console.log("unique contacts", uniqueContacts.length)
 
-    let [response, bounces] = await sgClient.request({
-      method: 'GET',
-      url: '/v3/suppression/bounces'
-    });
-    bounces = bounces.map(c => c.email);
-    uniqueContacts = uniqueContacts.filter(c => !bounces.includes(c["University Email"]))
-    console.log("remove bounces", uniqueContacts.length)
+        let [response, bounces] = await sgClient.request({
+          method: 'GET',
+          url: '/v3/suppression/bounces'
+        });
+        bounces = bounces.map(c => c.email);
+        uniqueContacts = uniqueContacts.filter(c => !bounces.includes(c["University Email"]))
+        console.log("remove bounces", uniqueContacts.length)
 
-    //uniqueContacts = uniqueContacts.filter(c => c["Role"] === 'Audience');
-    //console.log("audience only", uniqueContacts.length)
+        let [response2, unsubs] = await sgClient.request({
+          method: 'GET',
+          url: '/v3/suppression/unsubscribes'
+        });
+        unsubs = unsubs.map(c => c.email);
+        uniqueContacts = uniqueContacts.filter(c => !unsubs.includes(c["University Email"]))
+        console.log("remove unsubs", uniqueContacts.length)
 
-    const wedointhis = false;
-    if (wedointhis) {
-      uniqueContacts.forEach((contact) => {
-        const onlySignup = !schools.hasOwnProperty(contact["Email Domain"]);
-        const oneOtherSignup =
-          !onlySignup && schools[contact["Email Domain"]] == 2;
-        const emailData = {
-          firstName: contact["First Name"],
-          /*role: contact["Role"],
-          numFromSchool: schools[contact["Email Domain"]] - 1,
-          onlySignup,
-          oneOtherSignup,*/
-        };
+        uniqueContacts = uniqueContacts.filter(c => c["Role"] === 'Graduate');
+        console.log("grads only", uniqueContacts.length)
 
-        const msg = {
-          to: contact["University Email"],
-          from: "Quaranteen University <admissions@quaranteen.university>",
-          templateId: "d-d36e0bf5a61c4187a4e189adde9e4c66",
-          dynamic_template_data: emailData,
-        };
+        rsvps = rsvps.map(c => c['Email Address']);
 
-        
-        sgMail
-          .send(msg)
-          .then((res) => {
-            console.log(`${contact["University Email"]}: Success!`, emailData);
-          })
-          .catch((error) => {
-            console.error(
-              `${contact["University Email"]}: Failure!`,
-              emailData,
-              error
-            );
+        uniqueContacts = uniqueContacts.filter(c => !rsvps.includes(c["University Email"]))
+        console.log("remove rsvps", uniqueContacts.length)
 
-            if (error.response) {
-              console.error(error.response.body);
-            }
+        const wedointhis = false;
+        if (wedointhis) {
+          uniqueContacts.forEach((contact) => {
+            const onlySignup = !schools.hasOwnProperty(contact["Email Domain"]);
+            const oneOtherSignup =
+              !onlySignup && schools[contact["Email Domain"]] == 2;
+            const emailData = {
+              firstName: contact["First Name"],
+              /*role: contact["Role"],
+              numFromSchool: schools[contact["Email Domain"]] - 1,
+              onlySignup,
+              oneOtherSignup,*/
+            };
+
+            const msg = {
+              to: contact["University Email"],
+              from: "Quaranteen University <admissions@quaranteen.university>",
+              templateId: "d-e7e7a2ec51ef4d398d0b5d265b0876a4",
+              dynamic_template_data: emailData,
+            };
+
+            
+            sgMail
+              .send(msg)
+              .then((res) => {
+                console.log(`${contact["University Email"]}: Success!`, emailData);
+              })
+              .catch((error) => {
+                console.error(
+                  `${contact["University Email"]}: Failure!`,
+                  emailData,
+                  error
+                );
+
+                if (error.response) {
+                  console.error(error.response.body);
+                }
+              });
           });
+        } else {
+          console.log("Flag set to false!");
+        }
       });
-    } else {
-      console.log("Flag set to false!");
-    }
   });
