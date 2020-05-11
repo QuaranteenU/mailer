@@ -82,11 +82,11 @@ fs.createReadStream("responses.csv")
 
             const msg = {
               to: contact["University Email"],
-              from: "Quaranteen University <admissions@quaranteen.university>",
-              templateId: "d-e7e7a2ec51ef4d398d0b5d265b0876a4",
+              from: "Rudy from QU <rooday@bu.edu>",
+              replyTo: "Quaranteen University <admissions@quaranteen.university>",
+              templateId: "d-2a1edbbd1d924f52ac07b7868c46c4c6",
               dynamic_template_data: emailData,
             };
-
             
             sgMail
               .send(msg)
