@@ -35,10 +35,10 @@ fs.createReadStream("responses.csv")
 
         console.log("original contacts", contacts.length)
         const uniqueEmails = new Set(
-          contacts.filter((c) => c.Timestamp).map((c) => c["University Email"])
+          contacts.filter((c) => c.Timestamp).map((c) => c["Email"])
         );
         let uniqueContacts = Array.from(uniqueEmails).map((email) =>
-          contacts.find((c) => c["University Email"] === email)
+          contacts.find((c) => c["Email"] === email)
         );
         console.log("unique contacts", uniqueContacts.length)
 
@@ -47,7 +47,7 @@ fs.createReadStream("responses.csv")
           url: '/v3/suppression/bounces'
         });
         bounces = bounces.map(c => c.email);
-        uniqueContacts = uniqueContacts.filter(c => !bounces.includes(c["University Email"]))
+        uniqueContacts = uniqueContacts.filter(c => !bounces.includes(c["Email"]))
         console.log("remove bounces", uniqueContacts.length)
 
         let [response2, unsubs] = await sgClient.request({
@@ -55,7 +55,7 @@ fs.createReadStream("responses.csv")
           url: '/v3/suppression/unsubscribes'
         });
         unsubs = unsubs.map(c => c.email);
-        uniqueContacts = uniqueContacts.filter(c => !unsubs.includes(c["University Email"]))
+        uniqueContacts = uniqueContacts.filter(c => !unsubs.includes(c["Email"]))
         console.log("remove unsubs", uniqueContacts.length)
 
         uniqueContacts = uniqueContacts.filter(c => c["Role"] === 'Graduate');
@@ -63,15 +63,15 @@ fs.createReadStream("responses.csv")
 
         rsvps = rsvps.map(c => c['Email Address']);
 
-        uniqueContacts = uniqueContacts.filter(c => !rsvps.includes(c["University Email"]))
+        uniqueContacts = uniqueContacts.filter(c => !rsvps.includes(c["Email"]))
         console.log("remove rsvps", uniqueContacts.length)
 
         const wedointhis = false;
         if (wedointhis) {
           uniqueContacts.forEach((contact) => {
-            const onlySignup = !schools.hasOwnProperty(contact["Email Domain"]);
+            /*const onlySignup = !schools.hasOwnProperty(contact["Email Domain"]);
             const oneOtherSignup =
-              !onlySignup && schools[contact["Email Domain"]] == 2;
+              !onlySignup && schools[contact["Email Domain"]] == 2;*/
             const emailData = {
               firstName: contact["First Name"],
               /*role: contact["Role"],
@@ -81,21 +81,24 @@ fs.createReadStream("responses.csv")
             };
 
             const msg = {
-              to: contact["University Email"],
+              to: contact["Email"],
               from: "Rudy from QU <rooday@bu.edu>",
               replyTo: "Quaranteen University <admissions@quaranteen.university>",
-              templateId: "d-2a1edbbd1d924f52ac07b7868c46c4c6",
+              templateId: "d-86f79baddc5f447391577b4fca8059b8",
               dynamic_template_data: emailData,
+              asm: {
+                group_id: 13368,
+              },
             };
             
             sgMail
               .send(msg)
               .then((res) => {
-                console.log(`${contact["University Email"]}: Success!`, emailData);
+                console.log(`${contact["Email"]}: Success!`, emailData);
               })
               .catch((error) => {
                 console.error(
-                  `${contact["University Email"]}: Failure!`,
+                  `${contact["Email"]}: Failure!`,
                   emailData,
                   error
                 );
