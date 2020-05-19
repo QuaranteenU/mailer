@@ -3,7 +3,7 @@ const fs = require("fs");
 const csv = require("csv-parser");
 const fetch = require("node-fetch");
 const sgMail = require("@sendgrid/mail");
-const sgClient = require('@sendgrid/client');
+const sgClient = require("@sendgrid/client");
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 sgClient.setApiKey(process.env.SENDGRID_API_KEY);
 
@@ -22,7 +22,7 @@ const getSchools = async () => {
 };
 
 const contacts = [];
-let rsvps = []
+let rsvps = [];
 fs.createReadStream("responses.csv")
   .pipe(csv())
   .on("data", (data) => contacts.push(data))
@@ -33,38 +33,44 @@ fs.createReadStream("responses.csv")
       .on("end", async () => {
         const schools = await getSchools();
 
-        console.log("original contacts", contacts.length)
+        console.log("original contacts", contacts.length);
         const uniqueEmails = new Set(
           contacts.filter((c) => c.Timestamp).map((c) => c["Email"])
         );
         let uniqueContacts = Array.from(uniqueEmails).map((email) =>
           contacts.find((c) => c["Email"] === email)
         );
-        console.log("unique contacts", uniqueContacts.length)
+        console.log("unique contacts", uniqueContacts.length);
 
         let [response, bounces] = await sgClient.request({
-          method: 'GET',
-          url: '/v3/suppression/bounces'
+          method: "GET",
+          url: "/v3/suppression/bounces",
         });
-        bounces = bounces.map(c => c.email);
-        uniqueContacts = uniqueContacts.filter(c => !bounces.includes(c["Email"]))
-        console.log("remove bounces", uniqueContacts.length)
+        bounces = bounces.map((c) => c.email);
+        uniqueContacts = uniqueContacts.filter(
+          (c) => !bounces.includes(c["Email"])
+        );
+        console.log("remove bounces", uniqueContacts.length);
 
         let [response2, unsubs] = await sgClient.request({
-          method: 'GET',
-          url: '/v3/suppression/unsubscribes'
+          method: "GET",
+          url: "/v3/suppression/unsubscribes",
         });
-        unsubs = unsubs.map(c => c.email);
-        uniqueContacts = uniqueContacts.filter(c => !unsubs.includes(c["Email"]))
-        console.log("remove unsubs", uniqueContacts.length)
+        unsubs = unsubs.map((c) => c.email);
+        uniqueContacts = uniqueContacts.filter(
+          (c) => !unsubs.includes(c["Email"])
+        );
+        console.log("remove unsubs", uniqueContacts.length);
 
-        uniqueContacts = uniqueContacts.filter(c => c["Role"] === 'Graduate');
-        console.log("grads only", uniqueContacts.length)
+        uniqueContacts = uniqueContacts.filter((c) => c["Role"] === "Graduate");
+        console.log("grads only", uniqueContacts.length);
 
-        rsvps = rsvps.map(c => c['Email Address']);
+        rsvps = rsvps.map((c) => c["Email Address"]);
 
-        uniqueContacts = uniqueContacts.filter(c => !rsvps.includes(c["Email"]))
-        console.log("remove rsvps", uniqueContacts.length)
+        uniqueContacts = uniqueContacts.filter(
+          (c) => !rsvps.includes(c["Email"])
+        );
+        console.log("remove rsvps", uniqueContacts.length);
 
         const wedointhis = false;
         if (wedointhis) {
@@ -83,14 +89,15 @@ fs.createReadStream("responses.csv")
             const msg = {
               to: contact["Email"],
               from: "Rudy from QU <rooday@bu.edu>",
-              replyTo: "Quaranteen University <admissions@quaranteen.university>",
+              replyTo:
+                "Quaranteen University <admissions@quaranteen.university>",
               templateId: "d-86f79baddc5f447391577b4fca8059b8",
               dynamic_template_data: emailData,
               asm: {
                 group_id: 13368,
               },
             };
-            
+
             sgMail
               .send(msg)
               .then((res) => {

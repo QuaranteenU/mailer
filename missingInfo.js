@@ -2,7 +2,7 @@ require("dotenv").config();
 const fs = require("fs");
 const csv = require("csv-parser");
 const sgMail = require("@sendgrid/mail");
-const sgClient = require('@sendgrid/client');
+const sgClient = require("@sendgrid/client");
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 sgClient.setApiKey(process.env.SENDGRID_API_KEY);
 
@@ -15,7 +15,7 @@ fs.createReadStream("test.csv")
     if (wedointhis) {
       contacts.forEach((contact) => {
         const emailData = {
-          firstName: contact["Name"].split(' ')[0],
+          firstName: contact["Name"].split(" ")[0],
         };
 
         const msg = {
@@ -28,18 +28,14 @@ fs.createReadStream("test.csv")
             group_id: 13368,
           },
         };
-        
+
         sgMail
           .send(msg)
           .then((res) => {
             console.log(`${contact["Email"]}: Success!`, emailData);
           })
           .catch((error) => {
-            console.error(
-              `${contact["Email"]}: Failure!`,
-              emailData,
-              error
-            );
+            console.error(`${contact["Email"]}: Failure!`, emailData, error);
 
             if (error.response) {
               console.error(error.response.body);
