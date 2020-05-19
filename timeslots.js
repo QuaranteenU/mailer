@@ -17,9 +17,9 @@ fs.createReadStream("finaldata.csv")
   .pipe(csv())
   .on("data", (data) => contacts.push(data))
   .on("end", async () => {
-    console.log("total contacts", contacts.length);
+    console.log("Total Contacts:", contacts.length);
 
-    const wedointhis = true;
+    const wedointhis = false;
     if (wedointhis) {
       contacts.forEach((contact) => {
         const email = contact["Email Address"];
@@ -69,9 +69,7 @@ fs.createReadStream("finaldata.csv")
           },
         };
 
-        console.log(msg);
-
-        /*sgMail
+        sgMail
           .send(msg)
           .then((res) => {
             console.log(`${email}: Success!`, emailData);
@@ -86,7 +84,7 @@ fs.createReadStream("finaldata.csv")
             if (error.response) {
               console.error(error.response.body);
             }
-          });*/
+          });
       });
     } else {
       console.log("Flag set to false!");
