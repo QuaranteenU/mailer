@@ -19,7 +19,7 @@ fs.createReadStream("finaldata.csv")
   .on("end", async () => {
     console.log("Total Contacts:", contacts.length);
 
-    const wedointhis = false;
+    const wedointhis = true;
     if (wedointhis) {
       contacts.forEach((contact) => {
         const email = contact["Email Address"];
@@ -29,7 +29,7 @@ fs.createReadStream("finaldata.csv")
         const hasTimezone = !Number.isNaN(studentTimezone);
         const schoolName =
           contact["School"] === "Unknown"
-            ? "Quaranteen University"
+            ? "Quaranteen University Academy"
             : contact["School"];
 
         const schoolStartDate = new Date(contact["School Start Time UTC"]);
@@ -62,7 +62,7 @@ fs.createReadStream("finaldata.csv")
           to: email,
           from: "Rudy from QU <rooday@bu.edu>",
           replyTo: "Quaranteen University <admissions@quaranteen.university>",
-          templateId: "d-7cf3201b13414fb48e1b11426a5ca088",
+          templateId: "d-b6250a0e3b6b4682bf671267d8b7ea9e",
           dynamic_template_data: emailData,
           asm: {
             group_id: 13368,
