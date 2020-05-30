@@ -19,7 +19,7 @@ fs.createReadStream("finaldata.csv")
   .on("end", async () => {
     console.log("Total Contacts:", contacts.length);
 
-    const wedointhis = true;
+    const wedointhis = false;
     if (wedointhis) {
       contacts.forEach((contact) => {
         const email = contact["Email Address"];
@@ -62,7 +62,7 @@ fs.createReadStream("finaldata.csv")
           to: email,
           from: "Rudy from QU <rooday@bu.edu>",
           replyTo: "Quaranteen University <admissions@quaranteen.university>",
-          templateId: "d-b6250a0e3b6b4682bf671267d8b7ea9e",
+          templateId: "d-61712775b19a457fbd637b421b2a9c8d",
           dynamic_template_data: emailData,
           asm: {
             group_id: 13368,
