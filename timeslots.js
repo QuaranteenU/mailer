@@ -75,11 +75,7 @@ fs.createReadStream("finaldata.csv")
             console.log(`${email}: Success!`, emailData);
           })
           .catch((error) => {
-            console.error(
-              `${email}: Failure!`,
-              emailData,
-              error
-            );
+            console.error(`${email}: Failure!`, emailData, error);
 
             if (error.response) {
               console.error(error.response.body);

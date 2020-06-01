@@ -24,6 +24,7 @@
     "csv-parser": "^2.3.2",
     "date-and-time": "^0.13.1",
     "dotenv": "^8.2.0",
+    "jimp": "^0.12.1",
     "node-fetch": "^2.6.0"
   },
   "devDependencies": {
