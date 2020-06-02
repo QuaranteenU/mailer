@@ -6,96 +6,23 @@ const fetch = require("node-fetch");
 const Jimp = require("jimp");
 const sgMail = require("@sendgrid/mail");
 const sgClient = require("@sendgrid/client");
+const { abbreviateDegree, splitIntoLines, pruneContacts } = require("./util");
+
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 sgClient.setApiKey(process.env.SENDGRID_API_KEY);
 
-const abbreviateDegree = (degree) => {
-  const words = degree.split(" ");
-  return words
-    .filter((w) => w[0] === w[0].toUpperCase())
-    .map((w) => {
-      if (w === "/") return w;
-      return `${w[0]}.`;
-    })
-    .join("");
-};
-
-const splitIntoLines = (original) => {
-  const nameParts = original.split(" ");
-  if (nameParts.length < 2) {
-    return [original];
-  }
-
-  const partLength = nameParts.map((p) => p.length);
-  const totalLength = original.length;
-  let len1 = totalLength,
-    len2 = 0,
-    split = nameParts.length - 1;
-
-  for (let i = nameParts.length - 1; i >= 0; i--) {
-    if (
-      Math.abs(len1 - partLength[i] - (len2 + partLength[i])) >
-      Math.abs(len1 - len2)
-    ) {
-      break;
-    } else {
-      len1 -= partLength[i];
-      len2 += partLength[i];
-      split--;
-    }
-  }
-
-  const toReturn = ["", ""];
-  for (let i = 0; i < nameParts.length; i++) {
-    if (i <= split) {
-      toReturn[0] += nameParts[i] + (i == split ? "" : " ");
-    } else {
-      toReturn[1] += nameParts[i] + (i + 1 == nameParts.length ? "" : " ");
-    }
-  }
-
-  return toReturn;
-};
-
 const contacts = [];
-fs.createReadStream("testdata.csv")
+const PRUNE = true;
+const IS_HIGHSCHOOL = true;
+const SEND_EMAIL = true;
+
+fs.createReadStream("finaldata.csv")
   .pipe(csv())
   .on("data", (data) => contacts.push(data))
   .on("end", async () => {
-    const PRUNE = false;
-    let uniqueContacts;
-    if (PRUNE) {
-      console.log("=> Pruning contacts");
-      console.log("original contacts", contacts.length);
-      const uniqueEmails = new Set(contacts.map((c) => c["Email Address"]));
-      uniqueContacts = Array.from(uniqueEmails).map((email) =>
-        contacts.find((c) => c["Email Address"] === email)
-      );
-      console.log("unique contacts", uniqueContacts.length);
-
-      let [response, bounces] = await sgClient.request({
-        method: "GET",
-        url: "/v3/suppression/bounces",
-      });
-      bounces = bounces.map((c) => c.email);
-      uniqueContacts = uniqueContacts.filter(
-        (c) => !bounces.includes(c["Email Address"])
-      );
-      console.log("remove bounces", uniqueContacts.length);
-
-      let [response2, unsubs] = await sgClient.request({
-        method: "GET",
-        url: "/v3/suppression/unsubscribes",
-      });
-      unsubs = unsubs.map((c) => c.email);
-      uniqueContacts = uniqueContacts.filter(
-        (c) => !unsubs.includes(c["Email Address"])
-      );
-      console.log("remove unsubs", uniqueContacts.length);
-    } else {
-      uniqueContacts = contacts;
-    }
-
+    const uniqueContacts = PRUNE
+      ? await pruneContacts(contacts, sgClient)
+      : contacts;
     const processContact = async (index) => {
       if (index < uniqueContacts.length) {
         const contact = uniqueContacts[index];
@@ -105,19 +32,23 @@ fs.createReadStream("testdata.csv")
 
         const name = contact["Your Full Name"];
         const nameLines = splitIntoLines(name);
-        const degree = contact["Your Degree"];
+        const degree = IS_HIGHSCHOOL ? "" : contact["Your Degree"];
         const shortDegree =
           degree.length > 35 ? abbreviateDegree(degree) : degree;
-        const major = contact["Your Major(s)"];
+        const major = IS_HIGHSCHOOL ? "" : contact["Your Major(s)"];
         const majorLines = splitIntoLines(major);
 
         console.log(`=> Generating diploma for ${name}`);
+        const latexFile = IS_HIGHSCHOOL ? "highschool" : "university";
         const code = execSync(
-          `miktex-lualatex "\\def\\QUDiplomaName{${name}} \\def\\QUDegreeType{${degree}} \\def\\QUMajor{${major}} \\input{main}"`
+          `miktex-lualatex "\\def\\QUDiplomaName{${name}} \\def\\QUDegreeType{${degree}} \\def\\QUMajor{${major}} \\input{${latexFile}}"`
         );
 
         let loadedImage, largeFont, smallFont;
-        await Jimp.read("diploma_bg_QU.png")
+        const diplomaBg = IS_HIGHSCHOOL
+          ? "diploma_bg_QUA.png"
+          : "diploma_bg_QU.png";
+        await Jimp.read(diplomaBg)
           .then((image) => {
             loadedImage = image;
             return Jimp.loadFont("fonts/Minecraft Regular.fnt");
@@ -133,7 +64,7 @@ fs.createReadStream("testdata.csv")
                 .print(
                   largeFont,
                   0,
-                  360,
+                  IS_HIGHSCHOOL ? 490 : 360,
                   {
                     text: nameLines[0],
                     alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
@@ -144,7 +75,7 @@ fs.createReadStream("testdata.csv")
                 .print(
                   largeFont,
                   0,
-                  460,
+                  IS_HIGHSCHOOL ? 590 : 460,
                   {
                     text: nameLines[1],
                     alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
@@ -156,7 +87,7 @@ fs.createReadStream("testdata.csv")
               loadedImage = await loadedImage.print(
                 largeFont,
                 0,
-                410,
+                IS_HIGHSCHOOL ? 540 : 410,
                 {
                   text: nameLines[0],
                   alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
@@ -220,7 +151,7 @@ fs.createReadStream("testdata.csv")
           })
           .then((img) => img.getBase64Async("image/png"))
           .then(async (minecraftDiplomaData) => {
-            const normalDiplomaData = fs.readFileSync("main.pdf", {
+            const normalDiplomaData = fs.readFileSync(`${latexFile}.pdf`, {
               encoding: "base64",
             });
 
@@ -229,7 +160,7 @@ fs.createReadStream("testdata.csv")
               from: "Rudy from QU <rooday@bu.edu>",
               replyTo:
                 "Quaranteen University <admissions@quaranteen.university>",
-              templateId: "d-b6038557df6e4c0c80dcc6c422c7d640",
+              templateId: IS_HIGHSCHOOL ? "d-3108b5bceb4c46e1860d55f2516f822f" : "d-b6038557df6e4c0c80dcc6c422c7d640",
               dynamic_template_data: emailData,
               asm: {
                 group_id: 13368,
@@ -255,31 +186,30 @@ fs.createReadStream("testdata.csv")
               ],
             };
 
-            await sgMail
-              .send(msg)
-              .then((res) => {
-                console.log(`${contact["Email Address"]}: Success!`);
-                processContact(index + 1);
-              })
-              .catch((error) => {
-                console.error(`${contact["Email Address"]}: Failure!`, error);
+            if (SEND_EMAIL) {
+              await sgMail
+                .send(msg)
+                .then((res) => {
+                  console.log(`${contact["Email Address"]}: Success!`);
+                  processContact(index + 1);
+                })
+                .catch((error) => {
+                  console.error(`${contact["Email Address"]}: Failure!`, error);
 
-                if (error.response) {
-                  console.error(error.response.body);
-                }
-              });
+                  if (error.response) {
+                    console.error(error.response.body);
+                  }
+                });
+            }
           })
           .catch((err) => {
             console.error(err);
           });
+      } else {
+        console.log("=> Done!");
       }
     };
 
     process.chdir("latex");
-    const wedointhis = true;
-    if (wedointhis) {
-      processContact(0);
-    } else {
-      console.log("Flag set to false!");
-    }
+    processContact(0);
   });

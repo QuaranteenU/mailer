@@ -6,11 +6,11 @@
 \usepackage{xcolor}
 \usepackage{ulem}
 \usepackage{graphicx}
-\usepackage[tmargin=.5cm, bmargin=.5cm, lmargin=.5cm, rmargin=.5cm]{geometry}
+\usepackage[tmargin=.25cm, bmargin=.25cm, lmargin=-0.145cm, rmargin=0cm]{geometry}
 
 % keep this here for now, in case first page is blank locally
-\usepackage{atbegshi}% http://ctan.org/pkg/atbegshi
-\AtBeginDocument{\AtBeginShipoutNext{\AtBeginShipoutDiscard}}
+%\usepackage{atbegshi}% http://ctan.org/pkg/atbegshi
+%\AtBeginDocument{\AtBeginShipoutNext{\AtBeginShipoutDiscard}}
 
 \usepackage{multicol}
 \setlength{\columnseprule}{0.4pt}
@@ -18,27 +18,30 @@
 
 % Font and typeface imports.
 \usepackage{fontspec}
-\setmainfont{Chomsky} % Substitute any Blackletter font if we want to play around.
+\setmainfont{CloisterBlack} % Substitute any Blackletter font if we want to play around.
 \usepackage[letterspace=0]{microtype} % Reduce kerning whenever we use \textls{}.
 \usepackage{anyfontsize} % Self-explanatory.
 \newfontfamily{\agane}{Agane}[Extension = .ttf]
 
 
-% For curving text.
-\usepackage{tikz}
+\usepackage{etoolbox} % For checking whether a major is set or not.
+
+
+\usepackage{tikz} % For curving text.
 \usetikzlibrary{decorations.text}
 
 
-\definecolor{QUDiplomaBorder}{RGB}{45, 140, 255}
+\definecolor{QUDiplomaBorder}{RGB}{17, 124, 255} % This isn't the actual color, but has nicer contrast with the borders.
+% \definecolor{QUDiplomaBorder}{RGB}{45, 140, 255}
 
-\newenvironment{UniTitleFont}{\fontfamily{Agane}\selectfont}{\par}
+\newenvironment{UniTitleFont}{\fontfamily{Agane}\selectfont}{\par} % Define Agane font for signature subtext.
 
+% Global variables used to define people's info.
 \newcommand{\QUSeal}{\includegraphics[height=1.65cm]{seal.png}}
-\newcommand{\QUDiplomaTitle}{\fontsize{20}{6}\selectfont Quaranteen University}
-%\newcommand{\QUDiplomaName}{Warren Partridge}
-%\newcommand{\QUDegreeType}{Bachelor of Arts}
-%\newcommand{\QUMajor}{Computer Science}
+\newcommand{\QUDiplomaTitle}{\fontsize{20}{6}\textbf Quaranteen University}
 \newcommand{\QUDiplomaSignNameOne}{\textcolor{black}{\fontsize{7}{6}\selectfont ((Signature))}}
+
+
 
 
 \newcommand{\QUSteveSig}{\includegraphics[height=0.275cm]{stevesig2.png}}
@@ -50,39 +53,36 @@
 
 \begin{document}
 
-%\TileWallPaper{4cm}{2cm}{tiling.png}
-
 \centering
 \scalebox{3}{
-%\color{blue!30!black!30}
 \color{QUDiplomaBorder}
 \begin{minipage}{.33\textwidth}
 
+
 \font\border=umrandb
 \generalframe
-{\border \char113} % up left
-{\border \char109} % up
-{\border \char112} % up right
-{\border \char108} % left 
-{\border \char110} % right
-{\border \char114} % lower left
-{\border \char111} % bottom
-{\border \char115} % lower right
+{\border \char5} % up left
+{\border \char1} % up
+{\border \char4} % up right
+{\border \char2} % left 
+{\border \char0} % right
+{\border \char6} % lower left
+{\border \char3} % bottom
+{\border \char7} % lower right
 {\centering
 
 
-% \vspace{-8mm}
 
 % \curlyframe[.9\columnwidth]{
 
-\vspace{4mm}
+\vspace{5mm}
 
 \begin{tikzpicture}
 \path[draw=white, -stealth, % We draw a white line so that it matches the bg.
   postaction={decorate,
     decoration={text effects along path,
         text format delimiters={|}{|},
-        text={|\fontsize{18}{44}\selectfont| Quaranteen University},
+        text={|\fontsize{22}{44}\selectfont|Quaranteen University},
         text align=center,
         % text effects/.cd,
         text along path,
@@ -91,81 +91,77 @@
   (5, 0) arc [start angle=115, end angle=65, radius=9];
 \end{tikzpicture}
 
-% \textcolor{QUDiplomaBorder}{\large{ % TODO: Make this black?
-% Quaranteen University
-% }}
 
-\vspace{-1.5mm}
+\vspace{-3mm}
 
-% \textls{} means text letterspace. It reduces kerning.
-% \textcolor{green!10!black!90} <-- MAYBE USE THIS?
-\textcolor{black}{\tiny{
-Upon the Recommendation of the Faculty, the Board of Trustees has conferred upon
+\textcolor{black}{\fontsize{5.75}{6}\selectfont{
+Upon the Recommendation of the Faculty,\\
+has conferred upon\\
 }}
 
-\vspace{0.75mm}
+\vspace{0.5mm}
 
 \textcolor{black}{
 \QUDiplomaName
 }
 
-\vspace{-0.75mm}
+\vspace{-0.65mm}
 
-\textcolor{black}{\tiny{
+\textcolor{black}{\fontsize{5.75}{6}\selectfont{
 the degree of
 }}
 
 \vspace{0mm}
 
 \textcolor{black}{
-\QUDegreeType
+\QUDegreeType\ %in \QUMajor
 }
 
-\vspace{-0.5mm}
 
-\textcolor{black}{\fontsize{4}{6}\selectfont in}
-\textcolor{black}{\fontsize{7}{6}\selectfont \QUMajor}
+\ifdefempty{\QUMajor}{
+\vspace{-0.75mm}
 
-\vspace{1.5mm}
+% \textcolor{black}{\fontsize{4}{6}\selectfont in} \hspace{-2mm}
+\textcolor{black}{\fontsize{8}{6}\selectfont}
 
-\textcolor{black}{\tiny{
+\vspace{-1mm}
+}{
+\vspace{-0.75mm}
+
+% \textcolor{black}{\fontsize{4}{6}\selectfont in} \hspace{-2mm}
+\textcolor{black}{\fontsize{8}{6}\selectfont in\ \QUMajor}
+
+\vspace{1.75mm}
+}
+
+
+
+\textcolor{black}{\fontsize{5.75}{6}\selectfont{
 with all the honors, rights, privileges thereunto appertaining in testimony whereof,\\
 we have affixed our signatures, under the seal of the university,\\
 this Twenty-Second Day of May, Two Thousand and Twenty.\\
 }}
 
 
-% \smallskip
-% \smallskip
-
-% \textcolor{red!30!black!90}{\textit{
-% Certificate of
-% }}
-
-% \textcolor{black}{\large{\textsc{
-% \QUDiplomaTitle
-% }}}
-
-\vspace{4mm}
+\vspace{3.5mm}
 
 {\color{blue!40!black}
 \scalebox{.7}{
 \begin{tabular}{ccccc}
-% \cline{1-1} 
-% \cline{3-3}
-% \cline{5-5}
-% \\
-% \QUDiplomaSignNameOne  & &  & & \QUDiplomaSignNameOne \\
-%  & & \QUSeal & & \\
-\hspace{5.5mm} \begin{tabular}{@{}c@{}} \QUSteveSig \vspace{-1.25mm} \\ \QUSigTitleOne \vspace{9.5mm} \end{tabular} \hspace{-0.75mm}
+\hspace{5.5mm} \begin{tabular}{@{}c@{}} \QUSteveSig \vspace{-1.25mm} \\ \QUSigTitleOne \vspace{11.4mm} \end{tabular} \hspace{-0.75mm}
 & & \QUSeal & & 
-\hspace{-7mm} \begin{tabular}{@{}c@{}} \hspace{3mm} \QUPresidentSig \vspace{-4mm} \\ \QUSigTitleTwo \vspace{12.25mm} \end{tabular} \\ 
+\hspace{-7mm} \begin{tabular}{@{}c@{}} \hspace{6mm} \QUPresidentSig \vspace{-4mm} \\ \QUSigTitleTwo \vspace{14.75mm} \end{tabular} \\ 
 \end{tabular}
 }}
 
 
-
+\ifdefempty{\QUMajor}{
+\vspace{-2mm}
+}{
 \vspace{-5.8mm}
+}
+
+
 }
 
 % } <-- Curly frame bracket

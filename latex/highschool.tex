@@ -1,0 +1,158 @@
+% arara: lualatex: { interaction: nonstopmode, shell: yes }
+
+\documentclass[landscape]{article}
+\usepackage{wallpaper}
+\usepackage{niceframe}
+\usepackage{xcolor}
+\usepackage{ulem}
+\usepackage{graphicx}
+\usepackage[tmargin=.25cm, bmargin=.25cm, lmargin=-0.145cm, rmargin=0cm]{geometry}
+
+% keep this here for now, in case first page is blank locally
+%\usepackage{atbegshi}% http://ctan.org/pkg/atbegshi
+%\AtBeginDocument{\AtBeginShipoutNext{\AtBeginShipoutDiscard}}
+
+\usepackage{multicol}
+\setlength{\columnseprule}{0.4pt}
+\columnwidth=0.3\textwidth
+
+% Font and typeface imports.
+\usepackage{fontspec}
+\setmainfont{CloisterBlack} % Substitute any Blackletter font if we want to play around.
+\usepackage[letterspace=0]{microtype} % Reduce kerning whenever we use \textls{}.
+\usepackage{anyfontsize} % Self-explanatory.
+\newfontfamily{\agane}{Agane}[Extension = .ttf]
+
+
+\usepackage{etoolbox} % For checking whether a major is set or not.
+
+
+\usepackage{tikz} % For curving text.
+\usetikzlibrary{decorations.text}
+
+
+\definecolor{QUDiplomaBorder}{RGB}{17, 124, 255} % This isn't the actual color, but has nicer contrast with the borders.
+% \definecolor{QUDiplomaBorder}{RGB}{45, 140, 255}
+
+\newenvironment{UniTitleFont}{\fontfamily{Agane}\selectfont}{\par} % Define Agane font for signature subtext.
+
+% Global variables used to define people's info.
+\newcommand{\QUSeal}{\includegraphics[height=1.65cm]{seal.png}}
+\newcommand{\QUDiplomaTitle}{\fontsize{20}{6}\textbf Quaranteen University}
+\newcommand{\QUDiplomaSignNameOne}{\textcolor{black}{\fontsize{7}{6}\selectfont ((Signature))}}
+
+
+
+
+\newcommand{\QUSteveSig}{\includegraphics[height=0.275cm]{stevesig2.png}}
+\newcommand{\QUPresidentSig}{\includegraphics[height=0.9cm]{presidentsig.png}}
+\newcommand{\QUSigTitleOne}{\agane \textcolor{black}{\fontsize{4}{6}\selectfont HEADMASTER}}
+\newcommand{\QUSigTitleTwo}{\agane \textcolor{black}{\fontsize{4}{6}\selectfont PRESIDENT OF THE UNIVERSITY}}
+
+\newcommand{\QUBeegSpace}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ } % Forgive me Lord.
+
+\begin{document}
+
+\centering
+\scalebox{3}{
+\color{QUDiplomaBorder}
+\begin{minipage}{.33\textwidth}
+
+
+\font\border=umrandb
+\generalframe
+{\border \char5} % up left
+{\border \char1} % up
+{\border \char4} % up right
+{\border \char2} % left 
+{\border \char0} % right
+{\border \char6} % lower left
+{\border \char3} % bottom
+{\border \char7} % lower right
+{\centering
+
+
+
+% \curlyframe[.9\columnwidth]{
+
+\vspace{5mm}
+
+\begin{tikzpicture}
+\path[draw=white, -stealth, % We draw a white line so that it matches the bg.
+  postaction={decorate,
+    decoration={text effects along path,
+        text format delimiters={|}{|},
+        text={|\fontsize{17}{44}\selectfont|Quaranteen University Academy},
+        text align=center,
+        % text effects/.cd,
+        text along path,
+        every character/.style={fill=white,
+            yshift=-0.5ex}}}]
+  (5, 0) arc [start angle=115, end angle=65, radius=9];
+\end{tikzpicture}
+
+
+\vspace{-3mm}
+
+\textcolor{black}{\fontsize{5.75}{6}\selectfont{
+Upon the Recommendation of the Faculty,\\
+has conferred upon\\
+}}
+
+\vspace{0.5mm}
+
+\textcolor{black}{\fontsize{12}{6}\selectfont \QUDiplomaName}
+
+\vspace{1.5mm}
+
+\textcolor{black}{\fontsize{5.75}{6}\selectfont{
+in recognition of the fulfillment of the prescribed course of study\\
+the certificate of\\
+}}
+
+\vspace{1.5mm}
+
+\textcolor{black}{\fontsize{14}{6}\selectfont
+High School Diploma\\
+}
+
+\vspace{2mm}
+% \vspace{-0.75mm}
+
+% \textcolor{black}{\fontsize{4}{6}\selectfont in} \hspace{-2mm}
+% \textcolor{black}{\fontsize{8}{6}\selectfont}
+
+
+
+
+
+\textcolor{black}{\fontsize{5.75}{6}\selectfont{
+with all the honors, rights, privileges thereunto appertaining in testimony whereof,\\
+we have affixed our signatures, under the seal of the institution,\\
+this Twenty-Second Day of May, Two Thousand and Twenty.\\
+}}
+
+
+\vspace{3.5mm}
+
+{\color{blue!40!black}
+\scalebox{.7}{
+\begin{tabular}{ccccc}
+\hspace{5.5mm} \begin{tabular}{@{}c@{}} \QUSteveSig \vspace{-1.25mm} \\ \QUSigTitleOne \vspace{11.4mm} \end{tabular} \hspace{-0.75mm}
+& & \QUSeal & & 
+\hspace{-7mm} \begin{tabular}{@{}c@{}} \hspace{6mm} \QUPresidentSig \vspace{-4mm} \\ \QUSigTitleTwo \vspace{14.75mm} \end{tabular} \\ 
+\end{tabular}
+}}
+
+
+\vspace{-5.3mm}
+
+
+
+}
+
+% } <-- Curly frame bracket
+\end{minipage}
+}
+
+\end{document}
