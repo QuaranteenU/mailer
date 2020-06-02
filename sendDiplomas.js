@@ -23,34 +23,39 @@ const abbreviateDegree = (degree) => {
 const splitIntoLines = (original) => {
   const nameParts = original.split(" ");
   if (nameParts.length < 2) {
-      return [original];
+    return [original];
   }
 
-  const partLength = nameParts.map(p => p.length)
+  const partLength = nameParts.map((p) => p.length);
   const totalLength = original.length;
-  let len1 = totalLength, len2 = 0, split = nameParts.length - 1;
+  let len1 = totalLength,
+    len2 = 0,
+    split = nameParts.length - 1;
 
   for (let i = nameParts.length - 1; i >= 0; i--) {
-      if (Math.abs((len1 - partLength[i]) - (len2 + partLength[i])) > Math.abs(len1 - len2)) {
-          break;
-      } else {
-          len1 -= partLength[i];
-          len2 += partLength[i];
-          split--;
-      }
+    if (
+      Math.abs(len1 - partLength[i] - (len2 + partLength[i])) >
+      Math.abs(len1 - len2)
+    ) {
+      break;
+    } else {
+      len1 -= partLength[i];
+      len2 += partLength[i];
+      split--;
+    }
   }
 
   const toReturn = ["", ""];
   for (let i = 0; i < nameParts.length; i++) {
-      if (i <= split) {
-          toReturn[0] += nameParts[i] + (i == split ? "" : " ");
-      } else {
-          toReturn[1] += nameParts[i] + (i + 1 == nameParts.length ? "" : " ");
-      }
+    if (i <= split) {
+      toReturn[0] += nameParts[i] + (i == split ? "" : " ");
+    } else {
+      toReturn[1] += nameParts[i] + (i + 1 == nameParts.length ? "" : " ");
+    }
   }
 
   return toReturn;
-}
+};
 
 const contacts = [];
 fs.createReadStream("testdata.csv")
@@ -91,9 +96,9 @@ fs.createReadStream("testdata.csv")
       uniqueContacts = contacts;
     }
 
-    const wedointhis = true;
-    if (wedointhis) {
-      uniqueContacts.forEach(async (contact) => {
+    const processContact = async (index) => {
+      if (index < uniqueContacts.length) {
+        const contact = uniqueContacts[index];
         const emailData = {
           firstName: contact["Your Full Name"].split(" ")[0],
         };
@@ -104,52 +109,106 @@ fs.createReadStream("testdata.csv")
         const shortDegree =
           degree.length > 35 ? abbreviateDegree(degree) : degree;
         const major = contact["Your Major(s)"];
+        const majorLines = splitIntoLines(major);
 
         console.log(`=> Generating diploma for ${name}`);
-        process.chdir("latex");
-        /*const code = execSync(
+        const code = execSync(
           `miktex-lualatex "\\def\\QUDiplomaName{${name}} \\def\\QUDegreeType{${degree}} \\def\\QUMajor{${major}} \\input{main}"`
-        );*/
+        );
 
         let loadedImage, largeFont, smallFont;
         await Jimp.read("diploma_bg_QU.png")
           .then((image) => {
             loadedImage = image;
-            return Jimp.loadFont("fonts/Minecraft Regular 56.fnt");
+            return Jimp.loadFont("fonts/Minecraft Regular.fnt");
           })
           .then((font) => {
             largeFont = font;
-            return Jimp.loadFont("fonts/Minecraft Tiny 40.fnt");
+            return Jimp.loadFont("fonts/Minecraft Tiny.fnt");
           })
-          .then((font) => {
+          .then(async (font) => {
             smallFont = font;
-            loadedImage
-              .print(
+            if (nameLines.length > 1) {
+              loadedImage = await loadedImage
+                .print(
+                  largeFont,
+                  0,
+                  360,
+                  {
+                    text: nameLines[0],
+                    alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
+                  },
+                  1024,
+                  1024
+                )
+                .print(
+                  largeFont,
+                  0,
+                  460,
+                  {
+                    text: nameLines[1],
+                    alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
+                  },
+                  1024,
+                  1024
+                );
+            } else {
+              loadedImage = await loadedImage.print(
                 largeFont,
                 0,
-                360,
+                410,
                 {
                   text: nameLines[0],
                   alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
                 },
                 1024,
                 1024
-              )
-              .print(
-                largeFont,
+              );
+            }
+
+            if (major.length >= 40) {
+              loadedImage = await loadedImage
+                .print(
+                  smallFont,
+                  0,
+                  700,
+                  {
+                    text: majorLines[0],
+                    alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
+                  },
+                  1024,
+                  1024
+                )
+                .print(
+                  smallFont,
+                  0,
+                  750,
+                  {
+                    text: majorLines[1],
+                    alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
+                  },
+                  1024,
+                  1024
+                );
+            } else {
+              loadedImage = await loadedImage.print(
+                smallFont,
                 0,
-                460,
+                700,
                 {
-                  text: nameLines[1],
+                  text: major,
                   alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
                 },
                 1024,
                 1024
-              )
+              );
+            }
+
+            return loadedImage
               .print(
                 smallFont,
                 0,
-                700,
+                650,
                 {
                   text: shortDegree,
                   alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
@@ -159,59 +218,67 @@ fs.createReadStream("testdata.csv")
               )
               .write("minecraft.png");
           })
+          .then((img) => img.getBase64Async("image/png"))
+          .then(async (minecraftDiplomaData) => {
+            const normalDiplomaData = fs.readFileSync("main.pdf", {
+              encoding: "base64",
+            });
+
+            const msg = {
+              to: contact["Email Address"],
+              from: "Rudy from QU <rooday@bu.edu>",
+              replyTo:
+                "Quaranteen University <admissions@quaranteen.university>",
+              templateId: "d-b6038557df6e4c0c80dcc6c422c7d640",
+              dynamic_template_data: emailData,
+              asm: {
+                group_id: 13368,
+              },
+              attachments: [
+                {
+                  content: normalDiplomaData,
+                  filename: "QU-Diploma.pdf",
+                  type: "application/pdf",
+                  disposition: "attachment",
+                  contentId: "normalDiploma",
+                },
+                {
+                  content: minecraftDiplomaData.replace(
+                    "data:image/png;base64,",
+                    ""
+                  ),
+                  filename: "QU-Minecraft-Diploma.png",
+                  type: "image/png",
+                  disposition: "attachment",
+                  contentId: "minecraftDiploma",
+                },
+              ],
+            };
+
+            await sgMail
+              .send(msg)
+              .then((res) => {
+                console.log(`${contact["Email Address"]}: Success!`);
+                processContact(index + 1);
+              })
+              .catch((error) => {
+                console.error(`${contact["Email Address"]}: Failure!`, error);
+
+                if (error.response) {
+                  console.error(error.response.body);
+                }
+              });
+          })
           .catch((err) => {
             console.error(err);
           });
-        process.chdir("../");
+      }
+    };
 
-        console.log("converting diploma to base64");
-        const normalDiplomaData = fs.readFileSync("latex/main.pdf", {
-          encoding: "base64",
-        });
-        const minecraftDiplomaData = fs.readFileSync("latex/minecraft.png", {
-          encoding: "base64",
-        });
-
-        const msg = {
-          to: contact["Email Address"],
-          from: "Rudy from QU <rooday@bu.edu>",
-          replyTo: "Quaranteen University <admissions@quaranteen.university>",
-          templateId: "d-b6038557df6e4c0c80dcc6c422c7d640",
-          dynamic_template_data: emailData,
-          asm: {
-            group_id: 13368,
-          },
-          attachments: [
-            {
-              content: normalDiplomaData,
-              filename: "QU-Diploma.pdf",
-              type: "application/pdf",
-              disposition: "attachment",
-              contentId: "normalDiploma",
-            },
-            {
-              content: minecraftDiplomaData,
-              filename: "QU-Minecraft-Diploma.png",
-              type: "image/png",
-              disposition: "attachment",
-              contentId: "minecraftDiploma",
-            },
-          ],
-        };
-
-        /*sgMail
-          .send(msg)
-          .then((res) => {
-            console.log(`${contact["Email Address"]}: Success!`);
-          })
-          .catch((error) => {
-            console.error(`${contact["Email Address"]}: Failure!`, error);
-
-            if (error.response) {
-              console.error(error.response.body);
-            }
-          });*/
-      });
+    process.chdir("latex");
+    const wedointhis = true;
+    if (wedointhis) {
+      processContact(0);
     } else {
       console.log("Flag set to false!");
     }

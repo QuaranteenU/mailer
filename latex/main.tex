@@ -1,3 +1,5 @@
+% arara: lualatex: { interaction: nonstopmode, shell: yes }
+
 \documentclass[landscape]{article}
 \usepackage{wallpaper}
 \usepackage{niceframe}
@@ -7,8 +9,8 @@
 \usepackage[tmargin=.5cm, bmargin=.5cm, lmargin=.5cm, rmargin=.5cm]{geometry}
 
 % keep this here for now, in case first page is blank locally
-%\usepackage{atbegshi}% http://ctan.org/pkg/atbegshi
-%\AtBeginDocument{\AtBeginShipoutNext{\AtBeginShipoutDiscard}}
+\usepackage{atbegshi}% http://ctan.org/pkg/atbegshi
+\AtBeginDocument{\AtBeginShipoutNext{\AtBeginShipoutDiscard}}
 
 \usepackage{multicol}
 \setlength{\columnseprule}{0.4pt}
@@ -31,16 +33,20 @@
 
 \newenvironment{UniTitleFont}{\fontfamily{Agane}\selectfont}{\par}
 
-\newcommand{\QUDiplomaTitle}{Minecraft Commencement}
+\newcommand{\QUSeal}{\includegraphics[height=1.65cm]{seal.png}}
+\newcommand{\QUDiplomaTitle}{\fontsize{20}{6}\selectfont Quaranteen University}
 %\newcommand{\QUDiplomaName}{Warren Partridge}
 %\newcommand{\QUDegreeType}{Bachelor of Arts}
 %\newcommand{\QUMajor}{Computer Science}
 \newcommand{\QUDiplomaSignNameOne}{\textcolor{black}{\fontsize{7}{6}\selectfont ((Signature))}}
 
-% \begin{UniTitleFont}
-    \newcommand{\QUDiplomaSignTitleOne}{\agane \textcolor{black}{\fontsize{4}{6}\selectfont PRESIDENT, BOARD}}
-% \end{UniTitleFont}
 
+\newcommand{\QUSteveSig}{\includegraphics[height=0.275cm]{stevesig2.png}}
+\newcommand{\QUPresidentSig}{\includegraphics[height=0.9cm]{presidentsig.png}}
+\newcommand{\QUSigTitleOne}{\agane \textcolor{black}{\fontsize{4}{6}\selectfont DEAN, COLLEGE OF QUARANTINE}}
+\newcommand{\QUSigTitleTwo}{\agane \textcolor{black}{\fontsize{4}{6}\selectfont PRESIDENT OF THE UNIVERSITY}}
+
+\newcommand{\QUBeegSpace}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ } % Forgive me Lord.
 
 \begin{document}
 
@@ -64,21 +70,32 @@
 {\border \char115} % lower right
 {\centering
 
-\begin{minipage}{.9\textwidth}
-\centering
-\includegraphics[height=1.1cm]{seal.png}
-\end{minipage}
-\vspace{-8mm}
+
+% \vspace{-8mm}
 
 % \curlyframe[.9\columnwidth]{
 
-\vspace{9mm}
+\vspace{4mm}
 
-\textcolor{QUDiplomaBorder}{\large{ % TODO: Make this black?
-Quaranteen University
-}}
+\begin{tikzpicture}
+\path[draw=white, -stealth, % We draw a white line so that it matches the bg.
+  postaction={decorate,
+    decoration={text effects along path,
+        text format delimiters={|}{|},
+        text={|\fontsize{18}{44}\selectfont| Quaranteen University},
+        text align=center,
+        % text effects/.cd,
+        text along path,
+        every character/.style={fill=white,
+            yshift=-0.5ex}}}]
+  (5, 0) arc [start angle=115, end angle=65, radius=9];
+\end{tikzpicture}
 
-\vspace{0.75mm}
+% \textcolor{QUDiplomaBorder}{\large{ % TODO: Make this black?
+% Quaranteen University
+% }}
+
+\vspace{-1.5mm}
 
 % \textls{} means text letterspace. It reduces kerning.
 % \textcolor{green!10!black!90} <-- MAYBE USE THIS?
@@ -86,19 +103,19 @@ Quaranteen University
 Upon the Recommendation of the Faculty, the Board of Trustees has conferred upon
 }}
 
-\vspace{0.25mm}
+\vspace{0.75mm}
 
 \textcolor{black}{
 \QUDiplomaName
 }
 
-\vspace{-1mm}
+\vspace{-0.75mm}
 
 \textcolor{black}{\tiny{
 the degree of
 }}
 
-\vspace{-0.25mm}
+\vspace{0mm}
 
 \textcolor{black}{
 \QUDegreeType
@@ -129,8 +146,7 @@ this Twenty-Second Day of May, Two Thousand and Twenty.\\
 % \QUDiplomaTitle
 % }}}
 
-\vspace{2.5mm}
-% \vspace{4mm}
+\vspace{4mm}
 
 {\color{blue!40!black}
 \scalebox{.7}{
@@ -139,12 +155,17 @@ this Twenty-Second Day of May, Two Thousand and Twenty.\\
 % \cline{3-3}
 % \cline{5-5}
 % \\
-\QUDiplomaSignNameOne  & &  \QUDiplomaSignNameOne & & \QUDiplomaSignNameOne \\
-\QUDiplomaSignTitleOne & & \QUDiplomaSignTitleOne & & \QUDiplomaSignTitleOne \\ 
+% \QUDiplomaSignNameOne  & &  & & \QUDiplomaSignNameOne \\
+%  & & \QUSeal & & \\
+\hspace{5.5mm} \begin{tabular}{@{}c@{}} \QUSteveSig \vspace{-1.25mm} \\ \QUSigTitleOne \vspace{9.5mm} \end{tabular} \hspace{-0.75mm}
+& & \QUSeal & & 
+\hspace{-7mm} \begin{tabular}{@{}c@{}} \hspace{3mm} \QUPresidentSig \vspace{-4mm} \\ \QUSigTitleTwo \vspace{12.25mm} \end{tabular} \\ 
 \end{tabular}
 }}
 
-\vspace{3mm}
+
+
+\vspace{-5.8mm}
 }
 
 % } <-- Curly frame bracket
