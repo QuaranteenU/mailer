@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Tool to send out our mailing blasts",
   "scripts": {
+    "lint": "eslint .",
     "format": "prettier --write \"**/*.{js,jsx,json,md}\""
   },
   "repository": {
@@ -18,12 +19,10 @@
   "dependencies": {
     "@sendgrid/client": "^7.1.0",
     "@sendgrid/mail": "^7.0.1",
-    "axios": "^0.19.2",
     "csv-parser": "^2.3.2",
     "date-and-time": "^0.13.1",
     "dotenv": "^8.2.0",
-    "jimp": "^0.12.1",
-    "node-fetch": "^2.6.0"
+    "jimp": "^0.12.1"
   },
   "devDependencies": {
     "eslint": "^7.1.0",
