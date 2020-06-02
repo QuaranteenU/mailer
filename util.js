@@ -55,7 +55,7 @@ exports.pruneContacts = async (contacts, sgClient) => {
   );
   console.log("unique contacts", uniqueContacts.length);
 
-  let [response, bounces] = await sgClient.request({
+  let [, bounces] = await sgClient.request({
     method: "GET",
     url: "/v3/suppression/bounces",
   });
@@ -65,7 +65,7 @@ exports.pruneContacts = async (contacts, sgClient) => {
   );
   console.log("remove bounces", uniqueContacts.length);
 
-  let [response2, unsubs] = await sgClient.request({
+  let [, unsubs] = await sgClient.request({
     method: "GET",
     url: "/v3/suppression/unsubscribes",
   });

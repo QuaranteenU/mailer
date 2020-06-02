@@ -2,7 +2,6 @@ require("dotenv").config();
 const execSync = require("child_process").execSync;
 const fs = require("fs");
 const csv = require("csv-parser");
-const fetch = require("node-fetch");
 const Jimp = require("jimp");
 const sgMail = require("@sendgrid/mail");
 const sgClient = require("@sendgrid/client");
@@ -40,7 +39,7 @@ fs.createReadStream("finaldata.csv")
 
         console.log(`=> Generating diploma for ${name}`);
         const latexFile = IS_HIGHSCHOOL ? "highschool" : "university";
-        const code = execSync(
+        execSync(
           `miktex-lualatex "\\def\\QUDiplomaName{${name}} \\def\\QUDegreeType{${degree}} \\def\\QUMajor{${major}} \\input{${latexFile}}"`
         );
 
@@ -160,7 +159,9 @@ fs.createReadStream("finaldata.csv")
               from: "Rudy from QU <rooday@bu.edu>",
               replyTo:
                 "Quaranteen University <admissions@quaranteen.university>",
-              templateId: IS_HIGHSCHOOL ? "d-3108b5bceb4c46e1860d55f2516f822f" : "d-b6038557df6e4c0c80dcc6c422c7d640",
+              templateId: IS_HIGHSCHOOL
+                ? "d-3108b5bceb4c46e1860d55f2516f822f"
+                : "d-b6038557df6e4c0c80dcc6c422c7d640",
               dynamic_template_data: emailData,
               asm: {
                 group_id: 13368,
@@ -189,7 +190,7 @@ fs.createReadStream("finaldata.csv")
             if (SEND_EMAIL) {
               await sgMail
                 .send(msg)
-                .then((res) => {
+                .then(() => {
                   console.log(`${contact["Email Address"]}: Success!`);
                   processContact(index + 1);
                 })

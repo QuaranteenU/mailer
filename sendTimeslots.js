@@ -71,7 +71,7 @@ fs.createReadStream("finaldata.csv")
 
         sgMail
           .send(msg)
-          .then((res) => {
+          .then(() => {
             console.log(`${email}: Success!`, emailData);
           })
           .catch((error) => {
