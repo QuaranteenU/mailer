@@ -1,16 +1,14 @@
 # mailer
-Send timeslots/generated diplomas to contacts using SendGrid.
+Send timeslots/generated diplomas to contacts using [SendGrid](https://sendgrid.com/).
 
 ## Installation
 Clone the repo and run `npm install` to get the dependencies. You're also going to need Miktex for generating the Latex diplomas (set Miktex to download necessary plugins on the fly so you don't keep getting interrupted on the first run). Copy `.env.sample` to `.env` and fill in the values appropriately. Finally, you'll need a CSV file of your contacts' data called `finaldata.csv` placed at the project root. From there, you're all set to run the scripts.
 
 ## Flags
 The scripts have a set of flags at the top of each file, consider these a final check to look at before running a script.
-```
-PRUNE: Prune duplicates, bounces, and unsubscribes from the contact list
-IS_HIGHSCHOOL: Use Highschool variations
-SEND_EMAIL: Whether to actually fire the API call to SendGrid. If this is false, running the script will be a dry run that prints the data that would've been sent to SendGrid for each contact.
-```
+- PRUNE: Prune duplicates, bounces, and unsubscribes from the contact list
+- IS_HIGHSCHOOL: Use Highschool variations
+- SEND_EMAIL: Whether to actually fire the API call to SendGrid. If this is false, running the script will be a dry run that prints the data that would've been sent to SendGrid for each contact.
 
 ## Fonts Used (for diplomas)
 - [Agane](https://www.fontsquirrel.com/fonts/agane)
