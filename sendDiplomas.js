@@ -12,8 +12,8 @@ sgClient.setApiKey(process.env.SENDGRID_API_KEY);
 
 const contacts = [];
 const PRUNE = true;
-const IS_HIGHSCHOOL = true;
-const SEND_EMAIL = true;
+const IS_HIGHSCHOOL = false;
+const SEND_EMAIL = false;
 
 fs.createReadStream("finaldata.csv")
   .pipe(csv())
@@ -156,15 +156,14 @@ fs.createReadStream("finaldata.csv")
 
             const msg = {
               to: contact["Email Address"],
-              from: "Rudy from QU <rooday@bu.edu>",
-              replyTo:
-                "Quaranteen University <admissions@quaranteen.university>",
+              from: process.env.FROM_ADDRESS,
+              replyTo: process.env.REPLY_TO_ADDRESS,
               templateId: IS_HIGHSCHOOL
-                ? "d-3108b5bceb4c46e1860d55f2516f822f"
-                : "d-b6038557df6e4c0c80dcc6c422c7d640",
+                ? process.env.TEMPLATE_ID_HS
+                : process.env.TEMPLATE_ID,
               dynamic_template_data: emailData,
               asm: {
-                group_id: 13368,
+                group_id: process.env.ASM_GROUP_ID,
               },
               attachments: [
                 {
@@ -192,7 +191,7 @@ fs.createReadStream("finaldata.csv")
                 .send(msg)
                 .then(() => {
                   console.log(`${contact["Email Address"]}: Success!`);
-                  processContact(index + 1);
+                  processContact(index + 1); // have to do this recursively to make sure we process contacts one by one. next time use python
                 })
                 .catch((error) => {
                   console.error(`${contact["Email Address"]}: Failure!`, error);
@@ -201,6 +200,8 @@ fs.createReadStream("finaldata.csv")
                     console.error(error.response.body);
                   }
                 });
+            } else {
+              console.log(msg);
             }
           })
           .catch((err) => {

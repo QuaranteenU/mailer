@@ -4,6 +4,8 @@ const csv = require("csv-parser");
 const date = require("date-and-time");
 const sgMail = require("@sendgrid/mail");
 const sgClient = require("@sendgrid/client");
+const { pruneContacts } = require("./util");
+
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 sgClient.setApiKey(process.env.SENDGRID_API_KEY);
 
@@ -13,76 +15,82 @@ Date.prototype.addHours = function (h) {
 };
 
 const contacts = [];
+const PRUNE = true;
+const IS_HIGHSCHOOL = false;
+const SEND_EMAIL = false;
+
 fs.createReadStream("finaldata.csv")
   .pipe(csv())
   .on("data", (data) => contacts.push(data))
   .on("end", async () => {
-    console.log("Total Contacts:", contacts.length);
+    const uniqueContacts = PRUNE
+      ? await pruneContacts(contacts, sgClient)
+      : contacts;
 
-    const wedointhis = false;
-    if (wedointhis) {
-      contacts.forEach((contact) => {
-        const email = contact["Email Address"];
-        const firstName = contact["Your Full Name"].split(" ")[0];
+    uniqueContacts.forEach((contact) => {
+      const email = contact["Email Address"];
+      const firstName = contact["Your Full Name"].split(" ")[0];
 
-        const studentTimezone = parseInt(contact["Time Zone"]);
-        const hasTimezone = !Number.isNaN(studentTimezone);
-        const schoolName =
-          contact["School"] === "Unknown"
-            ? "Quaranteen University Academy"
-            : contact["School"];
+      const studentTimezone = parseInt(contact["Time Zone"]);
+      const hasTimezone = !Number.isNaN(studentTimezone);
+      const defaultSchoolName = IS_HIGHSCHOOL ? "Quaranteen University Academy" : "Quaranteen University";
+      const schoolName =
+        contact["School"] === "Unknown"
+          ? defaultSchoolName
+          : contact["School"];
 
-        const schoolStartDate = new Date(contact["School Start Time UTC"]);
-        const schoolStartTime = date.format(schoolStartDate, "hh:mm:ss A");
-        const schoolStartTimeLocal = hasTimezone
-          ? date.format(schoolStartDate.addHours(studentTimezone), "hh:mm:ss A")
-          : null;
+      const schoolStartDate = new Date(contact["School Start Time UTC"]);
+      const schoolStartTime = date.format(schoolStartDate, "hh:mm:ss A");
+      const schoolStartTimeLocal = hasTimezone
+        ? date.format(schoolStartDate.addHours(studentTimezone), "hh:mm:ss A")
+        : null;
 
-        const studentStartDate = new Date(contact["Start Time UTC"]);
-        const studentStartTime = date.format(studentStartDate, "hh:mm:ss A");
-        const studentStartTimeLocal = hasTimezone
-          ? date.format(
-              studentStartDate.addHours(studentTimezone),
-              "hh:mm:ss A"
-            )
-          : null;
+      const studentStartDate = new Date(contact["Start Time UTC"]);
+      const studentStartTime = date.format(studentStartDate, "hh:mm:ss A");
+      const studentStartTimeLocal = hasTimezone
+        ? date.format(
+            studentStartDate.addHours(studentTimezone),
+            "hh:mm:ss A"
+          )
+        : null;
 
-        const emailData = {
-          firstName,
-          hasTimezone,
-          studentTimezone,
-          schoolName,
-          schoolStartTime,
-          studentStartTime,
-          schoolStartTimeLocal,
-          studentStartTimeLocal,
-        };
+      const emailData = {
+        firstName,
+        hasTimezone,
+        studentTimezone,
+        schoolName,
+        schoolStartTime,
+        studentStartTime,
+        schoolStartTimeLocal,
+        studentStartTimeLocal,
+      };
 
-        const msg = {
-          to: email,
-          from: "Rudy from QU <rooday@bu.edu>",
-          replyTo: "Quaranteen University <admissions@quaranteen.university>",
-          templateId: "d-61712775b19a457fbd637b421b2a9c8d",
-          dynamic_template_data: emailData,
-          asm: {
-            group_id: 13368,
-          },
-        };
+      const msg = {
+        to: email,
+        from: process.env.FROM_ADDRESS,
+        replyTo: process.env.REPLY_TO_ADDRESS,
+        templateId: process.env.TEMPLATE_ID,
+        dynamic_template_data: emailData,
+        asm: {
+          group_id: process.env.ASM_GROUP_ID,
+        },
+      };
 
+      if (SEND_EMAIL) {
         sgMail
           .send(msg)
           .then(() => {
-            console.log(`${email}: Success!`, emailData);
+            console.log(`${email}: Success!`);
           })
           .catch((error) => {
-            console.error(`${email}: Failure!`, emailData, error);
+            console.error(`${email}: Failure!`, error);
 
             if (error.response) {
               console.error(error.response.body);
             }
           });
-      });
-    } else {
-      console.log("Flag set to false!");
-    }
+      } else {
+        console.log(msg);
+      }
+    });
   });
