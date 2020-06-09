@@ -33,11 +33,11 @@ fs.createReadStream("finaldata.csv")
 
       const studentTimezone = parseInt(contact["Time Zone"]);
       const hasTimezone = !Number.isNaN(studentTimezone);
-      const defaultSchoolName = IS_HIGHSCHOOL ? "Quaranteen University Academy" : "Quaranteen University";
+      const defaultSchoolName = IS_HIGHSCHOOL
+        ? "Quaranteen University Academy"
+        : "Quaranteen University";
       const schoolName =
-        contact["School"] === "Unknown"
-          ? defaultSchoolName
-          : contact["School"];
+        contact["School"] === "Unknown" ? defaultSchoolName : contact["School"];
 
       const schoolStartDate = new Date(contact["School Start Time UTC"]);
       const schoolStartTime = date.format(schoolStartDate, "hh:mm:ss A");
@@ -48,10 +48,7 @@ fs.createReadStream("finaldata.csv")
       const studentStartDate = new Date(contact["Start Time UTC"]);
       const studentStartTime = date.format(studentStartDate, "hh:mm:ss A");
       const studentStartTimeLocal = hasTimezone
-        ? date.format(
-            studentStartDate.addHours(studentTimezone),
-            "hh:mm:ss A"
-          )
+        ? date.format(studentStartDate.addHours(studentTimezone), "hh:mm:ss A")
         : null;
 
       const emailData = {
