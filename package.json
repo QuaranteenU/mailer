@@ -20,7 +20,7 @@
     "@sendgrid/client": "^7.1.0",
     "@sendgrid/mail": "^7.0.1",
     "csv-parser": "^2.3.2",
-    "date-and-time": "^0.13.1",
+    "date-and-time": "^0.14.2",
     "dotenv": "^8.2.0",
     "jimp": "^0.12.1"
   },
